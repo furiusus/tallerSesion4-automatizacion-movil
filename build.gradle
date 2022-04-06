@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    // https://mvnrepository.com/artifact/io.appium/java-client
+//    implementation group: 'io.appium', name: 'java-client', version: '8.0.0'
+    implementation 'io.appium:java-client:7.6.0'
+
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+//    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.1.2'
+    implementation 'org.seleniumhq.selenium:selenium-java:3.141.59'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-java
+    implementation group: 'io.cucumber', name: 'cucumber-java', version: '7.2.3'
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-junit
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit', version: '7.2.3'
+    implementation 'net.masterthought:cucumber-reporting:5.7.0'
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+// gradle cucumber -Psuite=@Regresion
+task cucumber() {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+//            args = ['--plugin', 'pretty', '--glue', 'runner', 'src/test/resources/features','--tags']+[suite]
+//            args = ['--plugin', 'html:build/reports/cucumber/report.html', '--glue', 'runner', 'src/test/resources/features','--tags']+[suite]
+            args = ['--plugin', 'json:build/reports/cucumber/report.json', '--glue', 'runner', 'src/test/resources', '--tags']+[suite]
+        }
+    }
+}
+
+task report(){
+    doLast {
+        javaexec {
+            main = "util.LocalReport"
+            classpath = sourceSets.test.runtimeClasspath
+        }
+    }
+}
